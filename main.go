@@ -2,9 +2,7 @@ package main
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
-	"io/ioutil"
 	appsv1 "k8s.io/api/apps/v1"
 	apiv1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -90,23 +88,60 @@ func main() {
 		//}
 
 		//create secrets
-		var s *apiv1.Secret
-		yamlFile, err := ioutil.ReadFile("secret.yaml")
-		if err != nil {
-			fmt.Println(err.Error())
-		} // 将读取的yaml文件解析为响应的 struct
-
-		err = json.Unmarshal(yamlFile, &s)
-		if err != nil {
-			fmt.Printf("unmarshall error:", err.Error())
-			return
+		//var s *apiv1.Secret
+		//yamlFile, err := ioutil.ReadFile("secret.yaml")
+		//if err != nil {
+		//	fmt.Println(err.Error())
+		//} // 将读取的yaml文件解析为响应的 struct
+		//
+		//err = json.Unmarshal(yamlFile, &s)
+		//if err != nil {
+		//	fmt.Printf("unmarshall error:", err.Error())
+		//	return
+		//}
+		var secret apiv1.Secret
+		secret.Kind = "Secret"
+		secret.APIVersion = "v1"
+		secret.ObjectMeta = metav1.ObjectMeta{
+			Name:      "test",
+			Namespace: "default",
 		}
-		secret, err := client.CoreV1().Secrets("testSecret").Create(context.TODO(), s, metav1.CreateOptions{})
+		dataMap := make(map[string][]byte)
+		dataMap["cloud.conf"] = []byte("W0dsb2JhbF0KdXNlcm5hbWUgPSBhZG1pbgpwYXNzd29yZCA9IEFkbWluX1BXRF84NjQ4NjczNTFxc2Myd2R2M2VmYjRyZ24KdGVuYW50LWlkID0gOWEyY2I0MDlmMGRhNDhlMzg1ODY4ZjI3ZmM5YzhjOWIKZG9tYWluLW5hbWUgPSBEZWZhdWx0CmF1dGgtdXJsID0gaHR0cDovL29wZW5zdGFjay1rZXlzdG9uZS12aXA6MzUzNTcvdjMKcmVnaW9uID0gcmVnaW9ub25lCg==")
+		secret.Data = dataMap
+		fmt.Println(secret)
+
+		result, err := client.CoreV1().Secrets("default").Create(context.TODO(), &secret, metav1.CreateOptions{})
 		if err != nil {
 			fmt.Println(err.Error())
 		} else {
 			fmt.Printf("Created Secret %q.\n", secret.GetObjectMeta().GetName())
 		}
+		fmt.Printf(" * secret create: %v\n", result)
+
+		//create secrets
+		//secretClient := client.CoreV1().Secrets("maxbroker")
+		//secretList, _ := secretClient.List(context.TODO(), metav1.ListOptions{})
+		//for _, d := range secretList.Items {
+		//	fmt.Printf(" * secret: %v %v\n", d.Name, d.Type)
+		//}
+		//
+		//var secret apiv1.Secret
+		//secret.Kind = "Secret"
+		//secret.APIVersion = "v1"
+		//secret.ObjectMeta = metav1.ObjectMeta{
+		//	Name:      "cloud-config",
+		//	Namespace: "kube-system",
+		//}
+		//dataMap := make(map[string][]byte)
+		//dataMap["cloud.conf"] = []byte("W0dsb2JhbF0KdXNlcm5hbWUgPSBhZG1pbgpwYXNzd29yZCA9IEFkbWluX1BXRF84NjQ4NjczNTFxc2Myd2R2M2VmYjRyZ24KdGVuYW50LWlkID0gOWEyY2I0MDlmMGRhNDhlMzg1ODY4ZjI3ZmM5YzhjOWIKZG9tYWluLW5hbWUgPSBEZWZhdWx0CmF1dGgtdXJsID0gaHR0cDovL29wZW5zdGFjay1rZXlzdG9uZS12aXA6MzUzNTcvdjMKcmVnaW9uID0gcmVnaW9ub25lCg==")
+		//secret.Data = dataMap
+		//fmt.Println(secret)
+		//result, err := secretClient.Create(context.TODO(), &secret, metav1.CreateOptions{})
+		//if err != nil {
+		//	fmt.Printf("err ... %v", err)
+		//}
+		//fmt.Printf(" * secret create: %v\n", result)
 
 		//创建流程
 		//result, err := deploymentsClient.Create(context.TODO(), deployment, metav1.CreateOptions{})
